@@ -1,0 +1,46 @@
+As camera 1 and camera 2 are symmetric around the z axis (camera 1 is x-z, camera 2 is y-z), then by finding the center
+of joint 1, we can find the exact point of symmetry. In an ideal world, where joint 1 would be perfectly centered in both
+cameras, the axis of symmetry would be the z axis itself.
+
+However, knowing that:
+1. Joint 1 is not moving
+2. Joint 1 is perfectly visible from both cameras
+3. Joint 1 as seen in Camera 1 rotated around z axis should give us Joint 1 as seen in Camera 2
+
+We can find the axis of symmetry outside of runtime & fix it from the beginning.
+
+From camera 1, the Pixel co-ordinates for Joint 1 are: [434, 546]
+From camera 2, the Pixel co-ordinates for Joint 1 are: [323, 543]
+
+As such, knowing the z-axis symmetry, we can calculate the actual axis of symmetry: (434 - 323) / 2 + 323 = 378
+
+
+This is important because now, knowing the length of all joints we can:
+1. use either camera to find the "height" [z-axis co-ordinate] of each blob
+2. we need one more co-ordinate to find the full position of each joint - this can be taken either from camera 1 or camera 2
+
+E.G. the robot has moved in such a way that leg 3 is parallel to the x axis (i.e. camera 1 looking into the yz plane does not distinguish the link at all)
+and leg 2 is parallel to the y axis (i.e. camera 2 looking into the xz plane does not distinguish the link at all), we are still able to find the vector representing
+the link accurately.
+
+I.e. We follow the steps (starting for link 2):
+1. For start & end blobs we find the camera that sees most pixels of the blob.
+2. We select the camera that sees the most pixels (alternatively, apply chaffer with circular balls and take best fit)
+3. We find the center of each blob co-ordinates
+
+I.e. use Cam1 for Yellow & it's [X, -10, 20]
+Now we use Cam2 for blue: [-10, Y, 20]
+
+We know the following:
+[X-0]**2 + [Y+10]**2 + 400 = L
+
+However, we know that Link 1 is fixed & as such, yellow is fixed at x =0 and we can eliminate one DOF.
+
+This is important because we can enforce the fixed nature of Link 1 to be able to only need 1 camera reading per blob.
+
+This approach results into the following:
+
+Joint1 = Fixed for Q1
+Joint2 = After finding Position of Blue -> Project on to X-axis -> [angle between X-axis & projection - Math.PI/2]
+Joint3 = After finding Position of Blue -> Project on to Y-axis -> [angle between Y-axis & projection - Math.PI/2]
+Joint4 = After finding Position of Blue & Red -> Angle between vector representing Link2 & vector representing Link3
