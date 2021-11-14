@@ -6,6 +6,7 @@ import numpy as np
 
 TEST_IMAGE_CAM_1_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_1.png')
 TEST_IMAGE_CAM_2_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_2.png')
+YELLOW_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/yellow_template.PNG'), 0)
 LINK_1_LENGTH = 4.0
 LINK_1_PIXEL_LENGTH = 105
 LINK_2_LENGTH = 0.0
@@ -40,7 +41,6 @@ def helper(img, lower, upper):
     mask = cv2.inRange(img, lower, upper)
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=3)
-    print(np.count_nonzero(mask))
 
 
 def pixel_to_meter(center_1, center_2, length):
@@ -64,9 +64,18 @@ def calc_3d_coord() -> np.ndarray:
     pass
 
 
-def detect_chamfer(img: np.ndarrray, lower: np.ndarrray, upper: np.ndarrray, template: str) -> np.ndarray:
-    area_of_interest = detect_blob(img, lower, upper)
-    pass
+# def template_match(img: np.ndarray, lower: np.ndarray, upper: np.ndarray, template: np.ndarray = None) -> np.ndarray:
+#     blob_centre = detect_blob(img, lower, upper)
+#     mask = cv2.inRange(img, lower, upper)
+#     res = cv2.matchTemplate(mask, template, 0)
+#     print(template.shape)
+#     exit()
+#     ROI = mask[int(blob_centre[1] - template.shape[0] / 2): int(blob_centre[1] + template.shape[0] / 2) + 1,
+#           int(blob_centre[0] - template.shape[1] / 2): int(blob_centre[0] + template.shape[1] / 2) + 1]
+#     ROI = ROI[0:template.shape[0], 0:template.shape[1]]
+#     dist = cv2.distanceTransform(cv2.bitwise_not(ROI), cv2.DIST_L2, 0)
+#     res = dist*template[0:dist.shape[0], 0:dist.shape[1]]
+#     pass
 
 
 def main():
@@ -76,18 +85,7 @@ def main():
     cam2_green_pix = detect_blob(cam_2_img, GREEN_LOWER, GREEN_UPPER)  # [0,0] point for cam 2
     cam1_yellow_pix = detect_blob(cam_1_img, YELLOW_LOWER, YELLOW_UPPER)
     cam2_yellow_pix = detect_blob(cam_2_img, YELLOW_LOWER, YELLOW_UPPER)
-    print('0 0 position for cam1 is ', end=' ')
-    print(cam1_green_pix)
-    print('0 0 position for cam2 is ', end=' ')
-    print(cam2_green_pix)
-    print('Yellow position for cam1 is ', end=' ')
-    print(cam1_yellow_pix)
-    print('Yellow position for cam2 is ', end=' ')
-    print(cam2_yellow_pix)
-    print('while calculated is ' , end=' ')
-    print(cam1_green_pix[0], cam1_green_pix[1] - LINK_1_PIXEL_LENGTH)
-    helper(cam_1_img, YELLOW_LOWER, YELLOW_UPPER)
-    helper(cam_2_img, YELLOW_LOWER, YELLOW_UPPER)
+    #template_match(cam_1_img, YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
     best_blue_coords = None
     best_red_coords = None
     best_green_coords = None
