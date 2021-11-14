@@ -9,11 +9,9 @@ However, knowing that:
 
 We can find the axis of symmetry outside of runtime & fix it from the beginning.
 
-From camera 1, the Pixel co-ordinates for Joint 1 are: [434, 546]
-From camera 2, the Pixel co-ordinates for Joint 1 are: [323, 543]
-
-As such, knowing the z-axis symmetry, we can calculate the actual axis of symmetry: (434 - 323) / 2 + 323 = 378
-
+From camera 1, the Pixel co-ordinates for Joint 1 are: [419, 535]
+From camera 2, the Pixel co-ordinates for Joint 1 are: [342, 536]
+As such, our [0,0,0] point is [340,420,545] and we have a Z-axis correction factor of -1 pixels for Camera_2
 
 This is important because now, knowing the length of all joints we can:
 1. use either camera to find the "height" [z-axis co-ordinate] of each blob
@@ -24,9 +22,10 @@ and leg 2 is parallel to the y axis (i.e. camera 2 looking into the xz plane doe
 the link accurately.
 
 I.e. We follow the steps (starting for link 2):
+0. Define a GLOBAL frame of reference - [where 0,0,0] is for both cameras so that co-ordinates can be invariant to the camera
 1. For start & end blobs we find the camera that sees most pixels of the blob.
 2. We select the camera that sees the most pixels (alternatively, apply chaffer with circular balls and take best fit)
-3. We find the center of each blob co-ordinates
+3. We find the center of each blob co-ordinates on that camera in that global frame of reference
 
 I.e. use Cam1 for Yellow & it's [X, -10, 20]
 Now we use Cam2 for blue: [-10, Y, 20]
@@ -44,3 +43,8 @@ Joint1 = Fixed for Q1
 Joint2 = After finding Position of Blue -> Project on to X-axis -> [angle between X-axis & projection - Math.PI/2]
 Joint3 = After finding Position of Blue -> Project on to Y-axis -> [angle between Y-axis & projection - Math.PI/2]
 Joint4 = After finding Position of Blue & Red -> Angle between vector representing Link2 & vector representing Link3
+
+
+
+AFTER TESTING:
+For some reason Joint 1 moves horizontally. As such, the [0,0,0] point needs to be recalculated on every run.
