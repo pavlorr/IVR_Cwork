@@ -37,3 +37,10 @@ We know the following:
 However, we know that Link 1 is fixed & as such, yellow is fixed at x =0 and we can eliminate one DOF.
 
 This is important because we can enforce the fixed nature of Link 1 to be able to only need 1 camera reading per blob.
+
+This approach results into the following:
+
+Joint1 = Fixed for Q1
+Joint2 = After finding Position of Blue -> Project on to X-axis -> [angle between X-axis & projection - Math.PI/2]
+Joint3 = After finding Position of Blue -> Project on to Y-axis -> [angle between Y-axis & projection - Math.PI/2]
+Joint4 = After finding Position of Blue & Red -> Angle between vector representing Link2 & vector representing Link3
