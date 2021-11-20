@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-import math
 
+import math
 import cv2
 import os
 import numpy as np
 from statistics import mean
 
 
-TEST_IMAGE_CAM_1_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_1_invest.png')
+TEST_IMAGE_CAM_1_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_1_baseline.png')
 TEST_IMAGE_CAM_1 = cv2.imread(TEST_IMAGE_CAM_1_FILE)
-TEST_IMAGE_CAM_2_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_2_invest.png')
+TEST_IMAGE_CAM_2_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_2_baseline.png')
 TEST_IMAGE_CAM_2 = cv2.imread(TEST_IMAGE_CAM_2_FILE)
 GREEN_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/green_template.PNG'), 0)
 YELLOW_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/yellow_template.PNG'), 0)
@@ -31,8 +31,6 @@ YELLOW_LOWER = np.array([0, 100, 100], np.uint8)
 YELLOW_UPPER = np.array([20, 255, 255], np.uint8)
 GREEN_LOWER = np.array([0, 100, 0], np.uint8)
 GREEN_UPPER = np.array([20, 255, 20], np.uint8)
-DUMMY_COORD_VAL = 'x'
-CAM2_Z_CORR_VAL = -1  # pixel correction for z axis measurements for cam 2
 
 
 def detect_blob(img: np.ndarray, lower: np.ndarray, upper: np.ndarray) -> list:
@@ -94,33 +92,14 @@ def get_template_match_coords(lower: np.ndarray, upper: np.ndarray, template: np
     three_d_coords.append(cam1_max_loc[1] + h/2)
     # cv2.rectangle(cam1_img, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
     # cv2.rectangle(cam1_tmpl_match, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
-    # cv2.imshow('template_window', template)
     # cv2.imshow('image_window', cam1_img)
     # cv2.imshow('result_window', cam1_tmpl_match)
+    # cv2.waitKey(0)
     # cv2.rectangle(cam2_img, cam2_max_loc, (cam2_max_loc[0] + template.shape[0], cam2_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
     # cv2.rectangle(cam2_tmpl_match, cam2_max_loc, (cam2_max_loc[0] + template.shape[0], cam2_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
     # cv2.imshow('image_window', cam2_img)
     # cv2.imshow('result_window', cam2_tmpl_match)
     # cv2.waitKey(0)
-    return three_d_coords
-    # if max_val > max_val2:
-    #     center_of_blob = [max_loc[0] + w/2, max_loc[1] + h/2]
-    #     #return get_3d_coords(cam1_img_blob=center_of_blob)
-    # else:
-    #     center_of_blob = [max_loc2[0] + w/2, max_loc2[1] + h/2]
-    #     return get_3d_coords(cam2_img_blob=center_of_blob)
-
-
-def get_base(cam1_img: np.ndarray, cam2_img: np.ndarray) -> np.ndarray:
-    three_d_coords = []
-    w, h = GREEN_TEMPLATE.shape[::-1]
-    cam1_tmpl_match = cv2.matchTemplate(detect_blob(cam1_img, GREEN_LOWER, GREEN_UPPER), GREEN_TEMPLATE, cv2.TM_CCORR)
-    cam2_tmpl_match = cv2.matchTemplate(detect_blob(cam2_img, GREEN_LOWER, GREEN_UPPER), GREEN_TEMPLATE, cv2.TM_CCORR)
-    cam1_max_loc = cv2.minMaxLoc(cam1_tmpl_match)[3]
-    cam2_max_loc = cv2.minMaxLoc(cam2_tmpl_match)[3]
-    three_d_coords.append(cam2_max_loc[0] + w/2)
-    three_d_coords.append(cam1_max_loc[0] + w/2)
-    three_d_coords.append(cam1_max_loc[1] + h/2)
     return three_d_coords
 
 
@@ -136,18 +115,27 @@ def get_3d_coords(cam1_img_blob: np.ndarray = None, cam2_img_blob: np.ndarray = 
     :rtype: list
     raises TypeError: When no parameter is not provided a TypeError is raised
     """
-    if cam1_img_blob and cam2_img_blob:
-        return [cam2_img_blob[0], cam1_img_blob[0], mean([cam1_img_blob[1], cam2_img_blob[1]])]
-    elif cam1_img_blob:
-        return [DUMMY_COORD_VAL, cam1_img_blob[0], cam1_img_blob[1]]
-        pass
-    elif cam2_img_blob:
-        return [cam2_img_blob[0], DUMMY_COORD_VAL, cam2_img_blob[1]]
-    raise TypeError('At least one value needs to be supplied')
+    pass
+    # if cam1_img_blob and cam2_img_blob:
+    #     return [cam2_img_blob[0], cam1_img_blob[0], mean([cam1_img_blob[1], cam2_img_blob[1]])]
+    # elif cam1_img_blob:
+    #     return [DUMMY_COORD_VAL, cam1_img_blob[0], cam1_img_blob[1]]
+    #     pass
+    # elif cam2_img_blob:
+    #     return [cam2_img_blob[0], DUMMY_COORD_VAL, cam2_img_blob[1]]
+    # raise TypeError('At least one value needs to be supplied')
 
 
 def calc_angle(in_vect1: np.ndarray, in_vect2: np.ndarray) -> float:
-    return np.arccos(np.dot(in_vect1, in_vect2))
+    """
+    Angle calculated
+    :param in_vect1: 2D vector for axis we are interested in
+    :type: np.ndarray
+    :param in_vect2: 2D vector for axis we are interested in
+    :type: np.ndarray
+    :return:
+    """
+    return np.arccos(in_vect1[0]/np.dot(in_vect1, in_vect1)) - np.arccos(in_vect2[0]/np.dot(in_vect2, in_vect2))
 
 
 def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
@@ -167,45 +155,38 @@ def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     print(joint_1_angle_y)
     print(joint_2_angle_x)
     print(joint_3_angle_y)
-    exit()
     pass
 
 
 def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarray, best_blue_coords: np.ndarray,
-                    best_red_coords: np.ndarray) -> np.ndarray:
+                    best_red_coords: np.ndarray) -> list:
     """
     Placeholder function to check accuracy of pure template matching & review if more accurate approaches need
     to be defined
     """
     pass
-    dummy_val_yel_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    dummy_val_blue_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    dummy_val_red_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    if dummy_val_yel_index == 0:
-        x = math.sqrt((green_3d_coords[1] - best_2d_yellow_coords[1])**2 +
-                      (green_3d_coords[2] - best_2d_yellow_coords[2])**2 -
-                      LINK_1_PIXEL_LENGTH) - green_3d_coords[0]
-        return [x, best_2d_yellow_coords[1], best_2d_yellow_coords[2]]
-    elif dummy_val_yel_index == 1:
-        x = math.sqrt((green_3d_coords[0] - best_2d_yellow_coords[0]) ** 2 +
-                      (green_3d_coords[2] - best_2d_yellow_coords[2]) ** 2 -
-                      LINK_1_PIXEL_LENGTH) - green_3d_coords[1]
-        return [best_2d_yellow_coords[0], x, best_2d_yellow_coords[2]]
+    # dummy_val_yel_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
+    # dummy_val_blue_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
+    # dummy_val_red_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
+    # if dummy_val_yel_index == 0:
+    #     x = math.sqrt((green_3d_coords[1] - best_2d_yellow_coords[1])**2 +
+    #                   (green_3d_coords[2] - best_2d_yellow_coords[2])**2 -
+    #                   LINK_1_PIXEL_LENGTH) - green_3d_coords[0]
+    #     return [x, best_2d_yellow_coords[1], best_2d_yellow_coords[2]]
+    # elif dummy_val_yel_index == 1:
+    #     x = math.sqrt((green_3d_coords[0] - best_2d_yellow_coords[0]) ** 2 +
+    #                   (green_3d_coords[2] - best_2d_yellow_coords[2]) ** 2 -
+    #                   LINK_1_PIXEL_LENGTH) - green_3d_coords[1]
+    #     return [best_2d_yellow_coords[0], x, best_2d_yellow_coords[2]]
 
 
 def main():
-    green_3d_coords = get_base(TEST_IMAGE_CAM_1, TEST_IMAGE_CAM_2)
-    yellow_3d_coords = get_moments_coords(YELLOW_LOWER, YELLOW_UPPER)#get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
-    blue_3d_coords = get_moments_coords(BLUE_LOWER, BLUE_UPPER)#get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
-    red_3d_coords = get_moments_coords(RED_LOWER, RED_UPPER)#get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE)
-    all_angles = calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
-    # print(yellow_3d_coords)
-    # print(blue_3d_coords)
-    # print(red_3d_coords)
-    # exit()
+    green_3d_coords = get_moments_coords(GREEN_LOWER,GREEN_UPPER)
+    yellow_3d_coords = get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)  #g et_moments_coords(YELLOW_LOWER, YELLOW_UPPER)
+    blue_3d_coords = get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)  # get_moments_coords(BLUE_LOWER, BLUE_UPPER)
+    red_3d_coords = get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE) # get_moments_coords(RED_LOWER, RED_UPPER)
+    calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
 
-    #yellow_3d_coords = calc_all_coords(green_3d_coords, best_2d_yellow_coords, best_2d_blue_coords, best_2d_red_coords)
 
 if __name__ == '__main__':
-
     main()
