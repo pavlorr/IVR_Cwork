@@ -54,7 +54,21 @@ def detect_blob(img: np.ndarray, lower: np.ndarray, upper: np.ndarray) -> list:
     return mask
 
 
-def get_best_coords(lower: np.ndarray, upper: np.ndarray, template: np.ndarray) -> list:
+def get_moments_coords(lower: np.ndarray, upper: np.ndarray) -> list:
+    cam1_img = detect_blob(TEST_IMAGE_CAM_1, lower, upper)
+    cam2_img = detect_blob(TEST_IMAGE_CAM_2, lower, upper)
+    three_d_coords = []
+    cam1_mom = cv2.moments(cam1_img)
+    cam2_mom = cv2.moments(cam2_img)
+    cam1_center = (int(cam1_mom["m10"] / cam1_mom["m00"]), int(cam1_mom["m01"] / cam1_mom["m00"]))
+    cam2_center = (int(cam2_mom["m10"] / cam2_mom["m00"]), int(cam2_mom["m01"] / cam2_mom["m00"]))
+    three_d_coords.append(cam2_center[0])
+    three_d_coords.append(cam1_center[0])
+    three_d_coords.append(cam1_center[1])
+    return three_d_coords
+
+
+def get_template_match_coords(lower: np.ndarray, upper: np.ndarray, template: np.ndarray) -> list:
     """
     get the best blob position for the camera with the best visibility
     the best visibility is determined by template matching the blob on the pic
@@ -78,8 +92,8 @@ def get_best_coords(lower: np.ndarray, upper: np.ndarray, template: np.ndarray) 
     three_d_coords.append(cam2_max_loc[0] + w/2)
     three_d_coords.append(cam1_max_loc[0] + w/2)
     three_d_coords.append(cam1_max_loc[1] + h/2)
-    cv2.rectangle(cam1_img, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
-    cv2.rectangle(cam1_tmpl_match, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
+    # cv2.rectangle(cam1_img, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
+    # cv2.rectangle(cam1_tmpl_match, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
     # cv2.imshow('template_window', template)
     # cv2.imshow('image_window', cam1_img)
     # cv2.imshow('result_window', cam1_tmpl_match)
@@ -143,8 +157,7 @@ def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     norm_node_2 = node_2/(np.sqrt(np.sum(node_2**2)))
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_3 = node_3/(np.sqrt(np.sum(node_3**2)))
-    print(np.sqrt(np.sum(node_1**2)))
-    exit()
+
     joint_1_angle_y = calc_angle(np.array([norm_node_1[0], norm_node_1[2]]),
                                  np.array([norm_node_2[0], norm_node_2[2]]))
     joint_2_angle_x = calc_angle(np.array([norm_node_1[1], norm_node_1[2]]),
@@ -182,9 +195,9 @@ def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarr
 
 def main():
     green_3d_coords = get_base(TEST_IMAGE_CAM_1, TEST_IMAGE_CAM_2)
-    yellow_3d_coords = get_best_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
-    blue_3d_coords = get_best_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
-    red_3d_coords = get_best_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE)
+    yellow_3d_coords = get_moments_coords(YELLOW_LOWER, YELLOW_UPPER)#get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
+    blue_3d_coords = get_moments_coords(BLUE_LOWER, BLUE_UPPER)#get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
+    red_3d_coords = get_moments_coords(RED_LOWER, RED_UPPER)#get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE)
     all_angles = calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
     # print(yellow_3d_coords)
     # print(blue_3d_coords)
@@ -194,4 +207,5 @@ def main():
     #yellow_3d_coords = calc_all_coords(green_3d_coords, best_2d_yellow_coords, best_2d_blue_coords, best_2d_red_coords)
 
 if __name__ == '__main__':
+
     main()

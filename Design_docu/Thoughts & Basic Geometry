@@ -11,7 +11,7 @@ We can find the axis of symmetry outside of runtime & fix it from the beginning.
 
 From camera 1, the Pixel co-ordinates for Joint 1 are: [419, 535]
 From camera 2, the Pixel co-ordinates for Joint 1 are: [342, 536]
-As such, our [0,0,0] point is [340,420,545] and we have a Z-axis correction factor of -1 pixels for Camera_2
+As such, our [0,0,0] point is [342,419,535.5] and we have a Z-axis correction factor of -1 pixels for Camera_2
 
 This is important because now, knowing the length of all joints we can:
 1. use either camera to find the "height" [z-axis co-ordinate] of each blob
