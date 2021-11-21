@@ -146,16 +146,14 @@ def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_3 = node_3/(np.sqrt(np.sum(node_3**2)))
 
-    joint_1_angle_y = calc_angle(np.array([norm_node_1[0], norm_node_1[2]]),
+    joint_2_angle_y = calc_angle(np.array([norm_node_1[0], norm_node_1[2]]),
                                  np.array([norm_node_2[0], norm_node_2[2]]))
-    joint_2_angle_x = calc_angle(np.array([norm_node_1[1], norm_node_1[2]]),
+    joint_3_angle_x = calc_angle(np.array([norm_node_1[1], norm_node_1[2]]),
                                  np.array([norm_node_2[1], norm_node_2[2]]))
-    joint_3_angle_y = calc_angle(np.array([norm_node_2[0], norm_node_2[2]]),
+    joint_4_angle_y = calc_angle(np.array([norm_node_2[0], norm_node_2[2]]),
                                  np.array([norm_node_3[0], norm_node_3[2]]))
-    print(joint_1_angle_y)
-    print(joint_2_angle_x)
-    print(joint_3_angle_y)
-    pass
+
+    return[joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
 
 def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarray, best_blue_coords: np.ndarray,
@@ -180,13 +178,13 @@ def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarr
     #     return [best_2d_yellow_coords[0], x, best_2d_yellow_coords[2]]
 
 
-def main():
-    green_3d_coords = get_moments_coords(GREEN_LOWER,GREEN_UPPER)
-    yellow_3d_coords = get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)  #g et_moments_coords(YELLOW_LOWER, YELLOW_UPPER)
-    blue_3d_coords = get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)  # get_moments_coords(BLUE_LOWER, BLUE_UPPER)
-    red_3d_coords = get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE) # get_moments_coords(RED_LOWER, RED_UPPER)
+def get_joint_angles():
+    green_3d_coords = get_moments_coords(GREEN_LOWER, GREEN_UPPER)
+    yellow_3d_coords = get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
+    blue_3d_coords = get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
+    red_3d_coords = get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE)
     calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
 
 
 if __name__ == '__main__':
-    main()
+    get_joint_angles()
