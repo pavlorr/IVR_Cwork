@@ -15,13 +15,6 @@ GREEN_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/
 YELLOW_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/yellow_template.PNG'), 0)
 RED_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/red_template.PNG'), 0)
 BLUE_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/blue_template.PNG'), 0)
-LINK_1_LENGTH = 4.0
-LINK_1_PIXEL_LENGTH = 105
-LINK_2_LENGTH = 0.0
-LINK_3_LENGTH = 3.2
-LINK_3_PIXEL_LENGTH = 80
-LINK_4_LENGTH = 2.8
-LINK_4_PIXEL_LENGTH = 76
 # blobs are darker so the upper limit needs to account for that
 BLUE_LOWER = np.array([100, 0, 0], np.uint8)
 BLUE_UPPER = np.array([255, 30, 30], np.uint8)
@@ -90,6 +83,9 @@ def get_template_match_coords(lower: np.ndarray, upper: np.ndarray, template: np
     three_d_coords.append(cam2_max_loc[0] + w/2)
     three_d_coords.append(cam1_max_loc[0] + w/2)
     three_d_coords.append(cam1_max_loc[1] + h/2)
+
+    return three_d_coords
+
     # cv2.rectangle(cam1_img, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
     # cv2.rectangle(cam1_tmpl_match, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
     # cv2.imshow('image_window', cam1_img)
@@ -100,9 +96,6 @@ def get_template_match_coords(lower: np.ndarray, upper: np.ndarray, template: np
     # cv2.imshow('image_window', cam2_img)
     # cv2.imshow('result_window', cam2_tmpl_match)
     # cv2.waitKey(0)
-    return three_d_coords
-
-
 def get_3d_coords(cam1_img_blob: np.ndarray = None, cam2_img_blob: np.ndarray = None) -> list:
     """
     Transforms the 2d pixel co-ordinates into 3d pixel coordinates substituting the missing dimension
@@ -183,7 +176,7 @@ def get_joint_angles():
     yellow_3d_coords = get_template_match_coords(YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
     blue_3d_coords = get_template_match_coords(BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
     red_3d_coords = get_template_match_coords(RED_LOWER, RED_UPPER, RED_TEMPLATE)
-    calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
+    return calc_all_angles(green_3d_coords, yellow_3d_coords, blue_3d_coords, red_3d_coords)
 
 
 if __name__ == '__main__':

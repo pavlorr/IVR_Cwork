@@ -2,7 +2,6 @@
 
 import rospy
 import math
-import sys
 from std_msgs.msg import Float64
 
 
@@ -74,21 +73,24 @@ class RadianPublicator:
         self.publicator_joint2 = rospy.Publisher(JOINT_2_TOPIC, Float64, queue_size=1)
         self.publicator_joint3 = rospy.Publisher(JOINT_3_TOPIC, Float64, queue_size=1)
         self.publicator_joint4 = rospy.Publisher(JOINT_4_TOPIC, Float64, queue_size=1)
+        self.rate = rospy.Rate(0.5)
 
-    def callback(self, seconds: float):
-        if not rospy.is_shutdown():
+    def callback(self):
+        seconds = 0
+        while not rospy.is_shutdown():
             # joint 1 is fixed, so no publishing
-            # a better way of publishing can be found but does not really matter
             #self.publicator_joint1.publish(JointHandler().pkg)
             self.publicator_joint2.publish(joint_angle(JOINT_2, seconds))
             self.publicator_joint3.publish(joint_angle(JOINT_3, seconds))
             self.publicator_joint4.publish(joint_angle(JOINT_4, seconds))
+            self.rate.sleep()
+            seconds += 1
 
 
 # run the code if the node is called
 if __name__ == '__main__':
     try:
         p = RadianPublicator()
-        p.callback(float(sys.argv[1]))
+        p.callback()
     except rospy.ROSInterruptException:
         pass
