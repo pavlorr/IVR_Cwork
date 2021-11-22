@@ -5,8 +5,8 @@ import sys
 import rospy
 import cv2
 import os
+import math
 import numpy as np
-from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float64MultiArray, Float64
 from cv_bridge import CvBridge, CvBridgeError
@@ -16,6 +16,13 @@ YELLOW_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files
 RED_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/red_template.PNG'), 0)
 BLUE_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/blue_template.PNG'), 0)
 # blobs are darker so the upper limit needs to account for that
+LINK_1_LENGTH = 4.0
+LINK_1_PIXEL_LENGTH = 105
+LINK_2_LENGTH = 0.0
+LINK_3_LENGTH = 3.2
+LINK_3_PIXEL_LENGTH = 80
+LINK_4_LENGTH = 2.8
+LINK_4_PIXEL_LENGTH = 76
 BLUE_LOWER = np.array([100, 0, 0], np.uint8)
 BLUE_UPPER = np.array([255, 30, 30], np.uint8)
 RED_LOWER = np.array([0, 0, 100], np.uint8)
@@ -112,27 +119,16 @@ def calc_angle(in_vect1: np.ndarray, in_vect2: np.ndarray) -> float:
     :type: np.ndarray
     :return:
     """
-    return np.arccos()
-    #return np.arccos(in_vect1[0]/np.dot(in_vect1, in_vect1)) - np.arccos(in_vect2[0]/np.dot(in_vect2, in_vect2))
+    pass
 
 
 def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     node_1 = np.array([xi - xj for xi, xj in zip(green_3d, yellow_3d)])
-    norm_node_1 = node_1/(np.sqrt(np.sum(node_1**2)))
     node_2 = np.array([xi - xj for xi, xj in zip(yellow_3d, blue_3d)])
-    norm_node_2 = node_2/(np.sqrt(np.sum(node_2**2)))
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
-    norm_node_3 = node_3/(np.sqrt(np.sum(node_3**2)))
-    joint_2_angle_y = np.arccos(norm_node_2[1] - norm_node_1[1])
-    joint_3_angle_x = np.arccos(norm_node_2[0] - norm_node_1[0])
-    joint_4_angle_y = np.arccos(norm_node_3[1] - norm_node_2[1])
-    # joint_2_angle_y = calc_angle(np.array([norm_node_1[0], norm_node_1[2]]),
-    #                              np.array([norm_node_2[0], norm_node_2[2]]))
-    # joint_3_angle_x = calc_angle(np.array([norm_node_1[1], norm_node_1[2]]),
-    #                              np.array([norm_node_2[1], norm_node_2[2]]))
-    # joint_4_angle_y = calc_angle(np.array([norm_node_2[0], norm_node_2[2]]),
-    #                              np.array([norm_node_3[0], norm_node_3[2]]))
-
+    joint_2_angle_y = math.pi/2 - np.arcsin(node_2[1]/(node_1[2] + LINK_3_PIXEL_LENGTH))
+    joint_3_angle_x = math.pi/2 - np.arcsin(node_2[0]/(node_1[2] + LINK_3_PIXEL_LENGTH))
+    joint_4_angle_y = math.pi/2 - np.arcsin(node_3[1]/(node_2[2] + LINK_4_PIXEL_LENGTH))
     return[joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
 
