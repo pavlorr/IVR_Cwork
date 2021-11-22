@@ -128,7 +128,7 @@ def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     joint_2_angle_y = math.pi/2 - np.arcsin(node_2[1]/(node_1[2] + LINK_3_PIXEL_LENGTH))
     joint_3_angle_x = math.pi/2 - np.arcsin(node_2[0]/(node_1[2] + LINK_3_PIXEL_LENGTH))
-    joint_4_angle_y = math.pi/2 - np.arcsin(node_3[1]/(node_2[2] + LINK_4_PIXEL_LENGTH))
+    joint_4_angle_y = math.pi/2 - np.arcsin(node_3[1]/(node_2[2] + LINK_4_PIXEL_LENGTH)) - joint_2_angle_y
     return[joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
 
