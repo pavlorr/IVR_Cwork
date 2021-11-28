@@ -123,13 +123,17 @@ def calc_angle(in_vect1: np.ndarray, in_vect2: np.ndarray) -> float:
 
 
 def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
-    node_1 = np.array([xi - xj for xi, xj in zip(green_3d, yellow_3d)])
     node_2 = np.array([xi - xj for xi, xj in zip(yellow_3d, blue_3d)])
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
-    joint_2_angle_y = math.pi/2 - np.arcsin(node_2[1]/(node_1[2] + LINK_3_PIXEL_LENGTH))
-    joint_3_angle_x = math.pi/2 - np.arcsin(node_2[0]/(node_1[2] + LINK_3_PIXEL_LENGTH))
-    joint_4_angle_y = math.pi/2 - np.arcsin(node_3[1]/(node_2[2] + LINK_4_PIXEL_LENGTH)) - joint_2_angle_y
-    return[joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
+    norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
+    norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
+    joint_2_angle_y = -np.arcsin(norm_node_2[0])
+    joint_3_angle_x = np.arcsin(norm_node_2[1])
+    joint_4_sign_help = np.cross(norm_node_2, norm_node_3)
+    joint_4_angle_y_abs = np.arccos(np.dot(norm_node_2, norm_node_3))
+    joint_4_angle_y = joint_4_angle_y_abs if joint_4_sign_help[0] < 0 else -1*joint_4_angle_y_abs
+    print([joint_2_angle_y, joint_3_angle_x, joint_4_angle_y])
+    return [joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
 
 def get_joint_angles(img: np.ndarray, img2: np.ndarray) -> list:

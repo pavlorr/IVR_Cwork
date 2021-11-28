@@ -7,9 +7,9 @@ import numpy as np
 from statistics import mean
 
 
-TEST_IMAGE_CAM_1_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_1_baseline.png')
+TEST_IMAGE_CAM_1_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam1.png')
 TEST_IMAGE_CAM_1 = cv2.imread(TEST_IMAGE_CAM_1_FILE)
-TEST_IMAGE_CAM_2_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam_2_baseline.png')
+TEST_IMAGE_CAM_2_FILE = os.path.join(os.path.dirname(__file__), 'Test_files/cam2.png')
 TEST_IMAGE_CAM_2 = cv2.imread(TEST_IMAGE_CAM_2_FILE)
 GREEN_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/green_template.PNG'), 0)
 YELLOW_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/yellow_template.PNG'), 0)
@@ -24,6 +24,13 @@ YELLOW_LOWER = np.array([0, 100, 100], np.uint8)
 YELLOW_UPPER = np.array([20, 255, 255], np.uint8)
 GREEN_LOWER = np.array([0, 100, 0], np.uint8)
 GREEN_UPPER = np.array([20, 255, 20], np.uint8)
+LINK_1_LENGTH = 4.0
+LINK_1_PIXEL_LENGTH = 105
+LINK_2_LENGTH = 0.0
+LINK_3_LENGTH = 3.2
+LINK_3_PIXEL_LENGTH = 80
+LINK_4_LENGTH = 2.8
+LINK_4_PIXEL_LENGTH = 76
 
 
 def detect_blob(img: np.ndarray, lower: np.ndarray, upper: np.ndarray) -> list:
@@ -86,16 +93,7 @@ def get_template_match_coords(lower: np.ndarray, upper: np.ndarray, template: np
 
     return three_d_coords
 
-    # cv2.rectangle(cam1_img, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
-    # cv2.rectangle(cam1_tmpl_match, cam1_max_loc, (cam1_max_loc[0] + template.shape[0], cam1_max_loc[1] + template.shape[1]), (0, 0, 0), 2, 8, 0)
-    # cv2.imshow('image_window', cam1_img)
-    # cv2.imshow('result_window', cam1_tmpl_match)
-    # cv2.waitKey(0)
-    # cv2.rectangle(cam2_img, cam2_max_loc, (cam2_max_loc[0] + template.shape[0], cam2_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
-    # cv2.rectangle(cam2_tmpl_match, cam2_max_loc, (cam2_max_loc[0] + template.shape[0], cam2_max_loc[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
-    # cv2.imshow('image_window', cam2_img)
-    # cv2.imshow('result_window', cam2_tmpl_match)
-    # cv2.waitKey(0)
+
 def get_3d_coords(cam1_img_blob: np.ndarray = None, cam2_img_blob: np.ndarray = None) -> list:
     """
     Transforms the 2d pixel co-ordinates into 3d pixel coordinates substituting the missing dimension
@@ -132,21 +130,16 @@ def calc_angle(in_vect1: np.ndarray, in_vect2: np.ndarray) -> float:
 
 
 def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
-    node_1 = np.array([xi - xj for xi, xj in zip(green_3d, yellow_3d)])
-    norm_node_1 = node_1/(np.sqrt(np.sum(node_1**2)))
+    # node_1 = np.array([xi - xj for xi, xj in zip(green_3d, yellow_3d)])
     node_2 = np.array([xi - xj for xi, xj in zip(yellow_3d, blue_3d)])
-    norm_node_2 = node_2/(np.sqrt(np.sum(node_2**2)))
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
-    norm_node_3 = node_3/(np.sqrt(np.sum(node_3**2)))
+    norm_node_2 = node_2/math.sqrt(np.sum(node_2**2))
+    norm_node_3 = node_3/math.sqrt(np.sum(node_3**2))
+    joint_2_angle_y = -np.arcsin(norm_node_2[0])
+    joint_3_angle_x = np.arcsin(norm_node_2[1])
+    joint_4_angle_y = -np.arcsin(np.dot(norm_node_2, norm_node_3))
+    return [joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
-    joint_2_angle_y = calc_angle(np.array([norm_node_1[0], norm_node_1[2]]),
-                                 np.array([norm_node_2[0], norm_node_2[2]]))
-    joint_3_angle_x = calc_angle(np.array([norm_node_1[1], norm_node_1[2]]),
-                                 np.array([norm_node_2[1], norm_node_2[2]]))
-    joint_4_angle_y = calc_angle(np.array([norm_node_2[0], norm_node_2[2]]),
-                                 np.array([norm_node_3[0], norm_node_3[2]]))
-
-    return[joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
 
 def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarray, best_blue_coords: np.ndarray,
@@ -156,19 +149,6 @@ def calc_all_coords(green_3d_coords: np.ndarray, best_2d_yellow_coords: np.ndarr
     to be defined
     """
     pass
-    # dummy_val_yel_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    # dummy_val_blue_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    # dummy_val_red_index = best_2d_yellow_coords.index(DUMMY_COORD_VAL)
-    # if dummy_val_yel_index == 0:
-    #     x = math.sqrt((green_3d_coords[1] - best_2d_yellow_coords[1])**2 +
-    #                   (green_3d_coords[2] - best_2d_yellow_coords[2])**2 -
-    #                   LINK_1_PIXEL_LENGTH) - green_3d_coords[0]
-    #     return [x, best_2d_yellow_coords[1], best_2d_yellow_coords[2]]
-    # elif dummy_val_yel_index == 1:
-    #     x = math.sqrt((green_3d_coords[0] - best_2d_yellow_coords[0]) ** 2 +
-    #                   (green_3d_coords[2] - best_2d_yellow_coords[2]) ** 2 -
-    #                   LINK_1_PIXEL_LENGTH) - green_3d_coords[1]
-    #     return [best_2d_yellow_coords[0], x, best_2d_yellow_coords[2]]
 
 
 def get_joint_angles():
