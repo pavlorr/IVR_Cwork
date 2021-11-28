@@ -73,7 +73,7 @@ class RadianPublicator:
         self.publicator_joint2 = rospy.Publisher(JOINT_2_TOPIC, Float64, queue_size=1)
         self.publicator_joint3 = rospy.Publisher(JOINT_3_TOPIC, Float64, queue_size=1)
         self.publicator_joint4 = rospy.Publisher(JOINT_4_TOPIC, Float64, queue_size=1)
-        self.rate = rospy.Rate(0.5)
+        self.rate = rospy.Rate(1)
 
     def callback(self):
         seconds = 0

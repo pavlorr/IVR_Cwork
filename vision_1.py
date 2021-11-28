@@ -104,9 +104,9 @@ def get_template_match_coords(img1: np.ndarray, img2: np.ndarray, lower: np.ndar
     cam2_tmpl_match = cv2.matchTemplate(cam2_img, template, cv2.TM_CCOEFF)
     cam1_max_loc = cv2.minMaxLoc(cam1_tmpl_match)[3]
     cam2_max_loc = cv2.minMaxLoc(cam2_tmpl_match)[3]
-    three_d_coords.append(cam2_max_loc[0] + w/2)
-    three_d_coords.append(cam1_max_loc[0] + w/2)
-    three_d_coords.append(cam1_max_loc[1] + h/2)
+    three_d_coords.append(cam2_max_loc[0] + w / 2)
+    three_d_coords.append(cam1_max_loc[0] + w / 2)
+    three_d_coords.append(cam1_max_loc[1] + h / 2)
     return three_d_coords
 
 
@@ -127,11 +127,13 @@ def calc_all_angles(green_3d, yellow_3d, blue_3d, red_3d):
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
     norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
-    joint_2_angle_y = -np.arcsin(norm_node_2[0])
-    joint_3_angle_x = np.arcsin(norm_node_2[1])
+    print('node 2 is ', end='')
+    print(norm_node_2)
+    joint_2_angle_y = -np.arcsin(norm_node_2[0] / math.sqrt(norm_node_2[0] ** 2 + norm_node_2[2] ** 2))
+    joint_3_angle_x = np.arcsin(norm_node_2[1] / math.sqrt(norm_node_2[1] ** 2 + norm_node_2[2] ** 2))
     joint_4_sign_help = np.cross(norm_node_2, norm_node_3)
     joint_4_angle_y_abs = np.arccos(np.dot(norm_node_2, norm_node_3))
-    joint_4_angle_y = joint_4_angle_y_abs if joint_4_sign_help[0] < 0 else -1*joint_4_angle_y_abs
+    joint_4_angle_y = joint_4_angle_y_abs if joint_4_sign_help[0] < 0 else -1 * joint_4_angle_y_abs
     print([joint_2_angle_y, joint_3_angle_x, joint_4_angle_y])
     return [joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
 
@@ -153,7 +155,6 @@ class ImageProcessing:
         self.joint_2_angle = rospy.Publisher("Joint_2_angle", Float64, queue_size=1)
         self.joint_3_angle = rospy.Publisher("Joint_3_angle", Float64, queue_size=1)
         self.joint_4_angle = rospy.Publisher("Joint_4_angle", Float64, queue_size=1)
-        self.rate = 0.5
 
     def callback2(self, data):
         self.cv_image2 = self.bridge.imgmsg_to_cv2(data, "bgr8")
