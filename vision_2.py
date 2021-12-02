@@ -8,7 +8,7 @@ import os
 import math
 import numpy as np
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float64MultiArray, Float64
+from std_msgs.msg import Float64
 from cv_bridge import CvBridge, CvBridgeError
 
 GREEN_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/green_template.PNG'), 0)
@@ -115,10 +115,10 @@ def calc_all_angles(yellow_3d, blue_3d, red_3d):
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
     norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
-    joint_2_angle_y = - np.arctan2(norm_node_2[0], norm_node_2[2])
-    rotate_matrix_y = np.array([[np.cos(joint_2_angle_y), 0, np.sin(joint_2_angle_y)],
-                               [0, 1, 0],
-                               [-np.sin(joint_2_angle_y), 0, np.cos(joint_2_angle_y)]])
+    joint_2_angle_z = - np.arctan2(norm_node_2[0], norm_node_2[1])
+    rotate_matrix_y = np.array([[np.cos(joint_2_angle_z), -np.sin(joint_2_angle_z), 0],
+                               [np.sin(joint_2_angle_z), np.cos(joint_2_angle_z), 0]],
+                               [0, 0, 1])
     norm_node_2 = np.matmul(rotate_matrix_y, norm_node_2)
     norm_node_3 = np.matmul(rotate_matrix_y, norm_node_3)
     joint_3_angle_x = np.arctan2(norm_node_2[1], norm_node_2[2])
@@ -128,8 +128,8 @@ def calc_all_angles(yellow_3d, blue_3d, red_3d):
     norm_node_3 = np.matmul(rotate_matrix_x, norm_node_3)
     joint_4_angle_y = - np.arctan2(norm_node_3[0], norm_node_3[2])
 
-    print([joint_2_angle_y, joint_3_angle_x, joint_4_angle_y])
-    return [joint_2_angle_y, joint_3_angle_x, joint_4_angle_y]
+    print([joint_2_angle_z, joint_3_angle_x, joint_4_angle_y])
+    return [joint_2_angle_z, joint_3_angle_x, joint_4_angle_y]
 
 
 def get_joint_angles(img: np.ndarray, img2: np.ndarray) -> list:
