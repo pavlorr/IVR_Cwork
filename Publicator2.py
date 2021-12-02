@@ -77,6 +77,7 @@ class RadianPublicator:
     def callback(self):
         seconds = 0
         while not rospy.is_shutdown():
+            print(joint_angle(JOINT_1, seconds), joint_angle(JOINT_3, seconds), joint_angle(JOINT_4, seconds))
             # joint 1 is fixed, so no publishing
             self.publicator_joint1.publish(joint_angle(JOINT_1, seconds))
             #elf.publicator_joint2.publish(joint_angle(JOINT_2, seconds))
