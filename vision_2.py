@@ -111,23 +111,25 @@ def get_template_match_coords(img1: np.ndarray, img2: np.ndarray, lower: np.ndar
 
 
 def calc_all_angles(yellow_3d, blue_3d, red_3d):
+    """
+    Calculates angles between nodes. Yaw -> Pitch -> Roll
+    """
     node_2 = np.array([xi - xj for xi, xj in zip(yellow_3d, blue_3d)])
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
     norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
-    joint_2_angle_z = - np.arctan2(norm_node_2[0], norm_node_2[1])
-    rotate_matrix_y = np.array([[np.cos(joint_2_angle_z), -np.sin(joint_2_angle_z), 0],
-                               [np.sin(joint_2_angle_z), np.cos(joint_2_angle_z), 0]],
-                               [0, 0, 1])
-    norm_node_2 = np.matmul(rotate_matrix_y, norm_node_2)
-    norm_node_3 = np.matmul(rotate_matrix_y, norm_node_3)
+    joint_2_angle_z = - np.arctan2(norm_node_2[0], -norm_node_2[1])
+    rotate_matrix_z = np.array([[np.cos(joint_2_angle_z), -np.sin(joint_2_angle_z), 0],
+                                [np.sin(joint_2_angle_z), np.cos(joint_2_angle_z), 0],
+                                [0, 0, 1]])
+    norm_node_2 = np.matmul(rotate_matrix_z, norm_node_2)
+    norm_node_3 = np.matmul(rotate_matrix_z, norm_node_3)
     joint_3_angle_x = np.arctan2(norm_node_2[1], norm_node_2[2])
     rotate_matrix_x = np.array([[1, 0, 0],
                                 [0, np.cos(joint_3_angle_x), -np.sin(joint_3_angle_x)],
                                 [0, np.sin(joint_3_angle_x), np.cos(joint_3_angle_x)]])
     norm_node_3 = np.matmul(rotate_matrix_x, norm_node_3)
     joint_4_angle_y = - np.arctan2(norm_node_3[0], norm_node_3[2])
-
     print([joint_2_angle_z, joint_3_angle_x, joint_4_angle_y])
     return [joint_2_angle_z, joint_3_angle_x, joint_4_angle_y]
 
@@ -148,7 +150,7 @@ class ImageProcessing:
         self.bridge = CvBridge()
         self.image_sub1 = rospy.Subscriber("/camera1/robot/image_raw", Image, self.callback1)
         self.image_sub2 = rospy.Subscriber("/camera2/robot/image_raw", Image, self.callback2)
-        self.joint_2_angle = rospy.Publisher("Joint_2_angle", Float64, queue_size=1)
+        self.joint_2_angle = rospy.Publisher("Joint_1_angle", Float64, queue_size=1)
         self.joint_3_angle = rospy.Publisher("Joint_3_angle", Float64, queue_size=1)
         self.joint_4_angle = rospy.Publisher("Joint_4_angle", Float64, queue_size=1)
 
