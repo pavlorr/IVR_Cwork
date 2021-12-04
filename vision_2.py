@@ -149,9 +149,9 @@ class ImageProcessing:
         self.bridge = CvBridge()
         self.image_sub1 = rospy.Subscriber("/camera1/robot/image_raw", Image, self.callback1)
         self.image_sub2 = rospy.Subscriber("/camera2/robot/image_raw", Image, self.callback2)
-        self.joint_2_angle = rospy.Publisher("Joint_1_angle", Float64, queue_size=1)
-        self.joint_3_angle = rospy.Publisher("Joint_3_angle", Float64, queue_size=1)
-        self.joint_4_angle = rospy.Publisher("Joint_4_angle", Float64, queue_size=1)
+        self.joint_2_angle = rospy.Publisher("/joint_1_angle", Float64, queue_size=1)
+        self.joint_3_angle = rospy.Publisher("/joint_3_angle", Float64, queue_size=1)
+        self.joint_4_angle = rospy.Publisher("/joint_4_angle", Float64, queue_size=1)
 
     def callback2(self, data):
         self.cv_image2 = self.bridge.imgmsg_to_cv2(data, "bgr8")

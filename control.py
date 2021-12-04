@@ -145,17 +145,16 @@ def get_joint_angles(img: np.ndarray, img2: np.ndarray) -> list:
     return calc_all_angles(yellow_3d_coords, blue_3d_coords, red_3d_coords)
 
 
-class ImageProcessing:
+class RobotControl:
     def __init__(self):
+        rospy.init_node('robot_control', anonymous=True)
         self.img_1_processed = False
         self.img_2_processed = False
-        rospy.init_node('image_processing', anonymous=True)
         self.bridge = CvBridge()
-        self.image_sub1 = rospy.Subscriber("/camera1/robot/image_raw", Image, self.callback1)
-        self.image_sub2 = rospy.Subscriber("/camera2/robot/image_raw", Image, self.callback2)
-        self.joint_2_angle = rospy.Publisher("Joint_1_angle", Float64, queue_size=1)
-        self.joint_3_angle = rospy.Publisher("Joint_3_angle", Float64, queue_size=1)
-        self.joint_4_angle = rospy.Publisher("Joint_4_angle", Float64, queue_size=1)
+        self.t_previous = np.array([rospy.get_time()], dtype='float64')
+        self.joint_1_angle_z = rospy.Subscriber('/joint_1_angle', Float64, self.callback1)
+        self.joint_3_angle_x = rospy.Subscriber('/joint_3_angle', Float64, self.callback3)
+        self.joint_4_angle_y = rospy.Subscriber('/joint_4_angle', Float64, self.callback4)
 
     def callback2(self, data):
         self.cv_image2 = self.bridge.imgmsg_to_cv2(data, "bgr8")
