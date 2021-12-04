@@ -8,7 +8,7 @@ import os
 import math
 import numpy as np
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Float64MultiArray
 from cv_bridge import CvBridge, CvBridgeError
 
 GREEN_TEMPLATE = cv2.imread(os.path.join(os.path.dirname(__file__), 'Test_files/green_template.PNG'), 0)
@@ -110,14 +110,21 @@ def get_template_match_coords(img1: np.ndarray, img2: np.ndarray, lower: np.ndar
     return three_d_coords
 
 
-def calc_all_angles(yellow_3d, blue_3d, red_3d):
+def calc_all_angles(yellow_3d, blue_3d, red_3d) -> list:
     """
     Calculates angles between nodes. Yaw -> Roll -> Pitch
+    :param yellow_3d: center of yellow joint
+    :param blue_3d: center of blue joint
+    :param red_3d: center of red joint
+    :return: calculated node angles after performing the rotation sequence described above
+    :rtype: list
     """
     node_2 = np.array([xi - xj for xi, xj in zip(yellow_3d, blue_3d)])
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
+    norm_node_2[2] = -norm_node_2[2]
     norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
+    norm_node_3[2] = -norm_node_3[2]
     joint_2_angle_z = - np.arctan2(norm_node_2[0], -norm_node_2[1])
     joint_3_angle_x = -np.arctan2(np.sin(joint_2_angle_z)*norm_node_2[0] - np.cos(joint_2_angle_z)*norm_node_2[1],
                                   norm_node_2[0]*np.cos(joint_2_angle_z) + norm_node_2[2])
@@ -134,6 +141,15 @@ def calc_all_angles(yellow_3d, blue_3d, red_3d):
 
 
 def get_joint_angles(img: np.ndarray, img2: np.ndarray) -> list:
+    """
+    finds the joint coordinates & exports them for angle calculation. It then returns the relevant angles
+    :param img: img from camera 1
+    :type: np.ndarray
+    :param img2: img from camera 2
+    :type: np.ndarray
+    :return: the list of the calculated angles
+    :rtype: list
+    """
     green_3d_coords = get_moments_coords(img, img2, GREEN_LOWER, GREEN_UPPER)
     yellow_3d_coords = get_template_match_coords(img, img2, YELLOW_LOWER, YELLOW_UPPER, YELLOW_TEMPLATE)
     blue_3d_coords = get_template_match_coords(img, img2, BLUE_LOWER, BLUE_UPPER, BLUE_TEMPLATE)
@@ -142,6 +158,32 @@ def get_joint_angles(img: np.ndarray, img2: np.ndarray) -> list:
 
 
 class ImageProcessing:
+    """
+    Class to control the determining the joint angles
+    Attributes
+    ----------
+    img_1_processed: checks if img 1 has been processed to ensure proper sequencing
+    img_2_processed: checks if img 2 has been processed to ensure proper sequencing
+    bridge: initiates the bridge between ROS & CV image format
+    image_sub1: subscriber for the ROS images for camera 1
+    image_sub2: subscriber for the ROS images for camera 2
+    joint_1_angle : rospy.Publisher
+        creates the publisher to the associated ROS standard topic for the movement of the robot joint 1
+    joint_3_angle : rospy.Publisher
+        creates the publisher to the associated ROS standard topic for the movement of the robot joint 3
+    joint_4_angle : rospy.Publisher
+        creates the publisher to the associated ROS standard topic for the movement of the robot joint 4
+    all_joints_angle : rospy.Publisher
+        creates the publisher to the associated ROS standard topic for the movement of all the robot joints
+
+    Methods
+    -------
+    callback1
+        calculates & publishes the relevant angles to the associated ROS topics for each robot joint
+    callback2
+        calculates & publishes the relevant angles to the associated ROS topics for each robot joint
+    """
+
     def __init__(self):
         self.img_1_processed = False
         self.img_2_processed = False
@@ -149,9 +191,10 @@ class ImageProcessing:
         self.bridge = CvBridge()
         self.image_sub1 = rospy.Subscriber("/camera1/robot/image_raw", Image, self.callback1)
         self.image_sub2 = rospy.Subscriber("/camera2/robot/image_raw", Image, self.callback2)
-        self.joint_2_angle = rospy.Publisher("/joint_1_angle", Float64, queue_size=1)
+        self.joint_1_angle = rospy.Publisher("/joint_1_angle", Float64, queue_size=1)
         self.joint_3_angle = rospy.Publisher("/joint_3_angle", Float64, queue_size=1)
         self.joint_4_angle = rospy.Publisher("/joint_4_angle", Float64, queue_size=1)
+        self.all_joints_angle = rospy.Publisher("/all_joints_angle", Float64, queue_size=1)
 
     def callback2(self, data):
         self.cv_image2 = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -162,11 +205,14 @@ class ImageProcessing:
             jointanglelist = get_joint_angles(self.cv_image1, self.cv_image2)
             joint_angle = Float64()
             joint_angle.data = jointanglelist[0]
-            self.joint_2_angle.publish(joint_angle)
+            self.joint_1_angle.publish(joint_angle)
             joint_angle.data = jointanglelist[1]
             self.joint_3_angle.publish(joint_angle)
             joint_angle.data = jointanglelist[2]
             self.joint_4_angle.publish(joint_angle)
+            all_angles = Float64MultiArray()
+            all_angles.data = jointanglelist
+            self.all_joints_angle.publish(all_angles)
 
     def callback1(self, data):
         self.cv_image1 = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -177,14 +223,20 @@ class ImageProcessing:
             jointanglelist = get_joint_angles(self.cv_image1, self.cv_image2)
             joint_angle = Float64()
             joint_angle.data = jointanglelist[0]
-            self.joint_2_angle.publish(joint_angle)
+            self.joint_1_angle.publish(joint_angle)
             joint_angle.data = jointanglelist[1]
             self.joint_3_angle.publish(joint_angle)
             joint_angle.data = jointanglelist[2]
             self.joint_4_angle.publish(joint_angle)
+            all_angles = Float64MultiArray()
+            all_angles.data = jointanglelist
+            self.all_joints_angle.publish(all_angles)
 
 
 def main():
+    """
+    Initiates
+    """
     ic = ImageProcessing()
     try:
         rospy.spin()

@@ -115,6 +115,8 @@ def calc_all_angles(yellow_3d, blue_3d, red_3d):
     node_3 = np.array([xi - xj for xi, xj in zip(blue_3d, red_3d)])
     norm_node_2 = node_2 / math.sqrt(np.sum(node_2 ** 2))
     norm_node_3 = node_3 / math.sqrt(np.sum(node_3 ** 2))
+    norm_node_2[2] = -norm_node_2[2]
+    norm_node_3[2] = -norm_node_3[2]
     joint_2_angle_y = - np.arctan2(norm_node_2[0], norm_node_2[2])
     rotate_matrix_y = np.array([[np.cos(joint_2_angle_y), 0, np.sin(joint_2_angle_y)],
                                [0, 1, 0],
