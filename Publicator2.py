@@ -74,9 +74,6 @@ class RadianPublicator:
         self.publicator_joint3 = rospy.Publisher(JOINT_3_TOPIC, Float64, queue_size=1)
         self.publicator_joint4 = rospy.Publisher(JOINT_4_TOPIC, Float64, queue_size=1)
         self.rate = rospy.Rate(0.1)
-        self.target_pos_sub = rospy.Subscriber('/target_pos', Float64MultiArray, self.callback_traj)
-
-
 
     def callback(self):
         seconds = 0
